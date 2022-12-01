@@ -2,6 +2,17 @@ from tkinter import *
 from tkinter.messagebox import *
 from PIL import Image, ImageTk 
 from random import randrange
+
+
+import sqlite3
+from tkinter import messagebox
+import os
+import configparser
+import tkinter
+from PIL import Image, ImageTk
+from tkinter import filedialog
+from PIL import ImageTk, Image
+import tkinter
 #import  tkinter as Tk
 
 SIDE=400
@@ -20,7 +31,7 @@ canvas.pack(side=TOP)
  # Variables globales
 old_x, old_y = 0, 0
 
-''' def clic_b(event):
+def clic_b(event):
     """ Gestion de l'événement clic gauche sur la zone graphique """
     global old_x, old_y
     # position du pointeur de la souris
@@ -37,8 +48,8 @@ def drag_b(event):
     old_y = event.y
 # Création d'un widget Canvas (zone graphique)
 
-canvas.bind('<Button-1>', clic_b)
-canvas.bind('<B1-Motion>', drag_b) '''
+canvas.bind_all('<KeyPress-n>', clic_b)
+canvas.bind_all('<Control-n>', drag_b)
 def effacer():
     """ Efface la zone graphique """
     canvas.delete(ALL)
@@ -51,7 +62,56 @@ def switch12():
     global photo
     #canvas.delete(ALL)
     x, y= randrange(SIDE),randrange(SIDE)
-    image = canvas.create_image(x,y, image=photo)
+    image = canvas.create_image(x,y, image=photo,tags="icon")
+    canvas.tag_bind(image, "<B1-Motion>", lambda e: move(image, e))
+    canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
+    
+    def propriete(e):
+
+        propri = Menu(menubar, tearoff=0)
+        propri.add_command(label="Changer l'icone", command=open_img)
+        propri.add_command(label="Supprimer", command= lambda: clic0(e))
+        propri.add_command(label="Renommer", command=renommer)
+        propri.post(e.x_root, e.y_root)
+    
+        
+    def clic0(event):
+        global x1,y1
+        x1=event.x
+        y1=event.y
+        t=canvas.find_closest(x1, y1)
+        if t:
+            canvas.delete(t[0])
+    canvas.bind("<KeyPress-x>",lambda e:clic0)
+
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
+    def openfn():
+        filename = filedialog.askopenfilename(title='App - Selectionne une image')
+        return filename
+    def open_img():
+        global img
+        x = openfn()
+        img = Image.open(x)
+        img = img.resize((100, 100), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(img)
+        Label(fenetre, image=img).grid (row = 4, column = 0)
+
+ 
+       
+
+    
+        
+#############################################################################################""   
+def switch24():
+    global photo1
+    #canvas.delete(ALL)
+    x, y= randrange(SIDE),randrange(SIDE)
+    image = canvas.create_image(x,y, image=photo1)
     canvas.tag_bind(image, "<B1-Motion>", lambda e: move(image, e))
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
@@ -71,9 +131,7 @@ def switch12():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<KeyPress-x>",lambda e:clic0)
-    def renommer():
-        la=Label(fenetre,text ="Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
 
     def renommer():
         top = Toplevel()
@@ -81,34 +139,6 @@ def switch12():
         src_dir = StringVar()
         Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
         Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
-        
-        
-#############################################################################################""   
-def switch24():
-    global photo1
-    #canvas.delete(ALL)
-    x, y= randrange(SIDE),randrange(SIDE)
-    image = canvas.create_image(x,y, image=photo1)
-    canvas.tag_bind(image, "<B1-Motion>", lambda e: move(image, e))
-    canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
-    
-    def propriete(e):
-
-        propri = Menu(menubar, tearoff=0)
-        propri.add_command(label="Changer l'icone", command=switch12)
-        propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
-        propri.post(e.x_root, e.y_root)
-    
-        
-    def clic0(event):
-        global x1,y1
-        x1=event.x
-        y1=event.y
-        t=canvas.find_closest(x1, y1)
-        if t:
-            canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
     
 #######################################################################################""        
 def routeur_f():
@@ -124,7 +154,7 @@ def routeur_f():
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
         
@@ -135,7 +165,13 @@ def routeur_f():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 ################################################################################################    
 def routeur():
@@ -151,7 +187,7 @@ def routeur():
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
         
@@ -162,7 +198,13 @@ def routeur():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 ############################################################################################################
 def pc_p():
@@ -174,14 +216,12 @@ def pc_p():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -189,7 +229,13 @@ def pc_p():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################
 def pc_f1():
@@ -201,14 +247,12 @@ def pc_f1():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -216,7 +260,13 @@ def pc_f1():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################
 def pc_f2():
@@ -228,14 +278,12 @@ def pc_f2():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -243,7 +291,13 @@ def pc_f2():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################   
 def telephone_f():
@@ -255,13 +309,11 @@ def telephone_f():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
-    
         
     def clic0(event):
         global x1,y1
@@ -270,7 +322,13 @@ def telephone_f():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################   
 def telephone_s_f():
@@ -282,14 +340,12 @@ def telephone_s_f():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -297,7 +353,13 @@ def telephone_s_f():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################   
 def iphone():
@@ -309,14 +371,12 @@ def iphone():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -324,7 +384,13 @@ def iphone():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
     
 #############################################################################################################    
 def android():
@@ -336,14 +402,12 @@ def android():
     canvas.tag_bind(image,"<Button-3>", lambda e: propriete(e))
     
     def propriete(e):
-
         propri = Menu(menubar, tearoff=0)
         propri.add_command(label="Changer l'icone", command=switch12)
         propri.add_command(label="Supprimer", command= lambda: clic0(e))
-        propri.add_command(label="Renommer", command=switch12)
+        propri.add_command(label="Renommer", command=renommer)
         propri.post(e.x_root, e.y_root)
     
-        
     def clic0(event):
         global x1,y1
         x1=event.x
@@ -351,7 +415,13 @@ def android():
         t=canvas.find_closest(x1, y1)
         if t:
             canvas.delete(t[0])
-    canvas.bind("<Button-1>",lambda:clic0)
+    canvas.bind("<KeyPress-x>",lambda:clic0)
+    def renommer():
+        top = Toplevel()
+        Label_w = Label(top, text = "Entrer le nouveu nom:",bg ="Dark grey").place(x = 40, y = 60)
+        src_dir = StringVar()
+        Entry(top,textvariable = src_dir,width = 50).place(x = 40, y = 100)
+        Button(top,text ="Modifier", command= top.destroy).place(x = 40, y = 160)
 #####################################################################################################################
 global photo,photo1,photo2,photo3,photo4,photo5,photo6,photo7,photo8,photo9,photo10
 photo = PhotoImage(file='switch12_b.png')
